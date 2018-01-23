@@ -5,18 +5,23 @@ require 'mocha/test_unit'
 require 'logger'
 require 'pp'
 require 'active_record'
+require 'tmpdir'
 
-require 'active_record/connection_adapters/mysql2_adapter'
 require 'active_record/connection_adapters/postgresql_adapter'
-
-# patch for older versions of activerecord
-# https://stackoverflow.com/questions/21075515/creating-tables-and-problems-with-primary-key-in-rails
-class ActiveRecord::ConnectionAdapters::Mysql2Adapter
-  NATIVE_DATABASE_TYPES[:primary_key] = "int(11) auto_increment PRIMARY KEY"
-end
 
 # Shim for compatibility with older versions of MiniTest
 MiniTest::Test = MiniTest::Unit::TestCase unless defined?(MiniTest::Test)
+
+pg_port = 5433
+
+# TODO log all statements via log_statement=all
+pg_dir = Dir.mktmpdir
+puts %x[initdb #{pg_dir}]
+puts %x[pg_ctl -o "-p #{pg_port}" -D #{pg_dir} -l postgres.log start]
+puts %x[createdb -p #{pg_port} marginalia_test]
+
+# TODO stop database at exit
+# puts %x[pg_ctl -o "-p #{pg_port}" -D #{pg_dir} stop]
 
 # From version 4.1, ActiveRecord expects `Rails.env` to be
 # defined if `Rails` is defined
@@ -31,8 +36,9 @@ require 'marginalia'
 RAILS_ROOT = File.expand_path(File.dirname(__FILE__))
 
 ActiveRecord::Base.establish_connection({
-  :adapter  => ENV["DRIVER"] || "mysql",
+  :adapter  => ENV["DRIVER"] || "postgres",
   :host     => "localhost",
+  :port     => pg_port,
   :username => ENV["DB_USERNAME"] || "root",
   :database => "marginalia_test"
 })
@@ -51,10 +57,6 @@ Marginalia.install
 
 class MarginaliaTest < MiniTest::Test
   def setup
-    @queries = []
-    ActiveSupport::Notifications.subscribe "sql.active_record" do |*args|
-      @queries << args.last[:sql]
-    end
     Marginalia.set('app', 'rails')
   end
 
@@ -65,32 +67,23 @@ class MarginaliaTest < MiniTest::Test
     ActiveRecord::Base.connection.unstub(:annotate_sql)
   end
 
-  def test_query_commenting_on_mysql_driver_with_no_action
+  def test_query_commenting_with_no_action
     ActiveRecord::Base.connection.execute "select id from posts"
     assert_match %r{select id from posts /\*app:rails\*/$}, @queries.first
   end
 
-  if ENV["DRIVER"] =~ /^mysql/
-    def test_query_commenting_on_mysql_driver_with_binary_chars
-      ActiveRecord::Base.connection.execute "select id from posts /* \x81\x80\u0010\ */"
-      assert_equal "select id from posts /* \x81\x80\u0010 */ /*app:rails*/", @queries.first
-    end
+  def test_query_commenting_on_postgres_update
+    ActiveRecord::Base.connection.expects(:annotate_sql).returns("update posts set id = 1").once
+    ActiveRecord::Base.connection.send(:exec_update, "update posts set id = 1")
+  ensure
+    ActiveRecord::Base.connection.unstub(:annotate_sql)
   end
 
-  if ENV["DRIVER"] =~ /^postgres/
-    def test_query_commenting_on_postgres_update
-      ActiveRecord::Base.connection.expects(:annotate_sql).returns("update posts set id = 1").once
-      ActiveRecord::Base.connection.send(:exec_update, "update posts set id = 1")
-    ensure
-      ActiveRecord::Base.connection.unstub(:annotate_sql)
-    end
-
-    def test_query_commenting_on_postgres_delete
-      ActiveRecord::Base.connection.expects(:annotate_sql).returns("delete from posts where id = 1").once
-      ActiveRecord::Base.connection.send(:exec_delete, "delete from posts where id = 1")
-    ensure
-      ActiveRecord::Base.connection.unstub(:annotate_sql)
-    end
+  def test_query_commenting_on_postgres_delete
+    ActiveRecord::Base.connection.expects(:annotate_sql).returns("delete from posts where id = 1").once
+    ActiveRecord::Base.connection.send(:exec_delete, "delete from posts where id = 1")
+  ensure
+    ActiveRecord::Base.connection.unstub(:annotate_sql)
   end
 
   def test_configuring_application
