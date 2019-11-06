@@ -15,7 +15,7 @@ services:
   - postgresql
 
 env:
-  - MARGINALIA_DB_PORT=5432 MARGINALIA_LOG_FILE=/var/log/postgresql/postgresql-10.0-main.log
+  - MARGINALIA_DB_PORT=5432 MARGINALIA_LOG_FILE=/var/log/postgresql/postgresql-10-main.log
 
 sudo: false
 
@@ -23,7 +23,6 @@ before_install:
   - bash -c "yes | gem uninstall -i /home/travis/.rvm/gems/ruby-2.5.0@global rake"
 
 before_script:
-  - ls /var/log/postgresql/*.log
   - sudo chmod 0644 $MARGINALIA_LOG_FILE
 
 script: bundle exec rake db:reset test:postgresql
