@@ -5,7 +5,11 @@ rvm:
   - 2.5.0
 
 addons:
-  postgresql: "9.6"
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
 
 services:
   - postgresql
