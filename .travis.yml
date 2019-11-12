@@ -5,17 +5,17 @@ rvm:
   - 2.5.0
 
 addons:
-  postgresql: "10"
+  postgresql: "11"
   apt:
     packages:
-    - postgresql-10
-    - postgresql-client-10
+    - postgresql-11
+    - postgresql-client-11
 
 services:
   - postgresql
 
 env:
-  - MARGINALIA_DB_PORT=5432 MARGINALIA_LOG_FILE=/var/log/postgresql/postgresql-10-main.log
+  - MARGINALIA_DB_PORT=5432 MARGINALIA_LOG_FILE=/var/log/postgresql/postgresql-11-main.log
 
 sudo: false
 
