@@ -7,12 +7,28 @@ DB_PORT=ENV['MARGINALIA_DB_PORT'] || 5455
 DB_NAME='marginalia_test'
 LOG_FILE=ENV['MARGINALIA_LOG_FILE'] || "tmp/marginalia_log"
 
-task :default => ['test:postgresql']
-
 namespace :test do
+  desc "test all drivers"
+  task :all => [:mysql2, :postgresql, :sqlite]
+
+  desc "test mysql driver"
+  task :mysql do
+    sh "DRIVER=mysql bundle exec ruby -Ilib -Itest test/*_test.rb"
+  end
+
+  desc "test mysql2 driver"
+  task :mysql2 do
+    sh "DRIVER=mysql2 bundle exec ruby -Ilib -Itest test/*_test.rb"
+  end
+
   desc "test PostgreSQL driver"
-  task :postgresql => [:"db:postgresql:reset"] do
-    sh "set -e; for file in $(find test -type f -name '*_test.rb'); do MARGINALIA_LOG_FILE=#{LOG_FILE} MARGINALIA_DB_PORT=#{DB_PORT} ruby -Ilib -Itest $file; done"
+  task :postgresql do
+    sh "DRIVER=postgresql DB_USERNAME=postgres bundle exec ruby -Ilib -Itest test/*_test.rb"
+  end
+
+  desc "test sqlite3 driver"
+  task :sqlite do
+    sh "DRIVER=sqlite3 bundle exec ruby -Ilib -Itest test/*_test.rb"
   end
 end
 

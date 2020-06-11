@@ -1,24 +1,17 @@
 sudo: required
 language: ruby
-
-rvm:
-  - 2.5.0
-
-addons:
-  postgresql: "9.6"
-
-services:
-  - postgresql
-
-env:
-  - MARGINALIA_DB_PORT=5432 MARGINALIA_LOG_FILE=/var/log/postgresql/postgresql-9.6-main.log
-
 sudo: false
 
-before_install:
-  - bash -c "yes | gem uninstall -i /home/travis/.rvm/gems/ruby-2.5.0@global rake"
+rvm:
+  - 2.2
+  - 2.3
+  - 2.4
 
-before_script:
-  - sudo chmod 0644 $MARGINALIA_LOG_FILE
+script: "bundle exec rake db:reset test:all"
 
-script: bundle exec rake db:reset test:postgresql
+gemfile:
+  - gemfiles/4.2.gemfile
+  - gemfiles/4.2.api.gemfile
+  - gemfiles/5.0.gemfile
+  - gemfiles/5.1.gemfile
+  - gemfiles/5.2.gemfile

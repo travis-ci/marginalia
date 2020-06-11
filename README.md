@@ -37,11 +37,82 @@ Then in your code, register install the monkey patches:
     # once on app boot
     Marginalia.install
 
-    # for every request
-    Marginalia.set('app', 'api')
-    Marginalia.set('request_id', '123e4567-e89b-12d3-a456-426655440000')
-    ...
-    Marginalia.clear!
+#### Components
+
+You can also configure the components of the comment that will be appended,
+by setting `Marginalia::Comment.components`. By default, this is set to:
+
+    Marginalia::Comment.components = [:application, :controller, :action]
+
+Which results in a comment of
+`application:#{application_name},controller:#{controller.name},action:#{action_name}`.
+
+You can re-order or remove these components. You can also add additional
+comment components of your desire by defining new module methods for
+`Marginalia::Comment` which return a string. For example:
+
+    module Marginalia
+      module Comment
+        def self.mycommentcomponent
+          "TEST"
+        end
+      end
+    end
+
+    Marginalia::Comment.components = [:application, :mycommentcomponent]
+
+Which will result in a comment like
+`application:#{application_name},mycommentcomponent:TEST`
+The calling controller is available to these methods via `@controller`.
+
+Marginalia ships with `:application`, `:controller`, and `:action` enabled by
+default. In addition, implementation is provided for:
+  * `:line` (for file and line number calling query). :line supports
+    a configuration by setting a regexp in `Marginalia::Comment.lines_to_ignore`
+    to exclude parts of the stacktrace from inclusion in the line comment.
+  * `:controller_with_namespace` to include the full classname (including namespace)
+    of the controller.
+  * `:job` to include the classname of the ActiveJob being performed.
+  * `:hostname` to include ```Socket.gethostname```.
+  * `:pid` to include current process id. 
+
+With ActiveRecord >= 3.2.19:
+  * `:db_host` to include the configured database hostname.
+  * `:socket` to include the configured database socket.
+  * `:database` to include the configured database name.
+
+Pull requests for other included comment components are welcome.
+
+#### Prepend comments
+
+By default marginalia appends the comments at the end of the query. Certain databases, such as MySQL will truncate
+the query text. This is the case for slow query logs and the results of querying some InnoDB internal tables where the
+length of the query is more than 1024 bytes.
+
+In order to not lose the marginalia comments from your logs, you can prepend the comments using this option:
+
+    Marginalia::Comment.prepend_comment = true
+
+#### Inline query annotations
+
+In addition to the request or job-level component-based annotations,
+Marginalia may be used to add inline annotations to specific queries using a
+block-based API.
+
+For example, the following code:
+
+    Marginalia.with_annotation("foo") do
+      Account.where(queenbee_id: 1234567890).first
+    end
+
+will issue this query:
+
+    Account Load (0.3ms)  SELECT `accounts`.* FROM `accounts`
+    WHERE `accounts`.`queenbee_id` = 1234567890
+    LIMIT 1
+    /*application:BCX,controller:project_imports,action:show*/ /*foo*/
+
+Nesting `with_annotation` blocks will concatenate the comment strings.
 
 ## Contributing
 
