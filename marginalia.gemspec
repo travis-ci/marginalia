@@ -8,10 +8,10 @@ Gem::Specification.new do |gem|
   gem.test_files    = `git ls-files -- {test}/*`.split("\n")
   gem.name          = "marginalia"
   gem.require_paths = ["lib"]
-  gem.version       = "1.5.0"
+  gem.version       = "1.6.0"
   gem.license       = "MIT"
 
-  gem.add_dependency "pg", "~> 0.21"
+  gem.add_dependency "pg", "~> 1.3"
 
   gem.add_development_dependency "activerecord", ">= 2.3"
   gem.add_development_dependency "sequel"
