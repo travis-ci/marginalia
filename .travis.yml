@@ -16,6 +16,7 @@ env:
 sudo: false
 
 before_install:
+  - gem install rubygems-update -v 3.4.22
   - bash -c "yes | gem uninstall -i /home/travis/.rvm/gems/ruby-2.5.0@global rake"
 
 before_script:
