@@ -66,7 +66,9 @@ class ActiveRecordMarginaliaTest < MiniTest::Test
 
   def test_configuring_application
     Marginalia.set('app', 'customapp')
+    puts "ALL1"
     Post.all.to_a
+    puts "ALL1--"
     assert TestHelpers.file_contains_string(ENV['MARGINALIA_LOG_FILE'], "/*adapter:active_record,app:customapp*/")
   end
 
