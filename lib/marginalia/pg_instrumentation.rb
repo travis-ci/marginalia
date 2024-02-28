@@ -4,9 +4,7 @@ require 'pg'
 module Marginalia
   module PgConnectionMonkeyPatch
     def exec(sql, *args)
-      puts "EXEC #{sql.inspect}"
       comment = Marginalia.construct_comment
-      puts "EXEC COMMENT: #{comment.inspect}"
       if comment && comment != "" && !sql.include?(comment)
         super "#{sql} #{comment}", *args
       else
@@ -15,11 +13,7 @@ module Marginalia
     end
 
     def query(sql, *args)
-
-      puts "QUERY #{sql.inspect}"
       comment = Marginalia.construct_comment
-
-      puts "Q COMMENT: #{comment.inspect}"
       if comment && comment != "" && !sql.include?(comment)
         super "#{sql} #{comment}", *args
       else
@@ -28,11 +22,7 @@ module Marginalia
     end
 
     def async_exec(sql, *args)
-
-      puts "A.EXEC #{sql.inspect}"
       comment = Marginalia.construct_comment
-
-      puts "AE COMMENT: #{comment.inspect}"
       if comment && comment != "" && !sql.include?(comment)
         super "#{sql} #{comment}", *args
       else
@@ -41,11 +31,7 @@ module Marginalia
     end
 
     def async_query(sql, *args)
-
-      puts "A.QUERY #{sql.inspect}"
       comment = Marginalia.construct_comment
-
-      puts "AQ COMMENT: #{comment.inspect}"
       if comment && comment != "" && !sql.include?(comment)
         super "#{sql} #{comment}", *args
       else
@@ -54,11 +40,7 @@ module Marginalia
     end
 
     def prepare(statement_name, sql, *args)
-
-      puts "PREP #{sql.inspect}"
       comment = Marginalia.construct_comment
-
-      puts "PREP COMMENT: #{comment.inspect}"
       if comment && comment != "" && !sql.include?(comment)
         super statement_name, "#{sql} #{comment}", *args
       else
