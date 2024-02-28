@@ -7,7 +7,7 @@ require 'test_helpers'
 require 'tempfile'
 
 # Shim for compatibility with older versions of MiniTest
-#MiniTest::Test = MiniTest::Unit::TestCase unless defined?(MiniTest::Test)
+MiniTest::Test = MiniTest::Unit::TestCase unless defined?(MiniTest::Test)
 
 DB_NAME="marginalia_test"
 
