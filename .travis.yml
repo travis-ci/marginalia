@@ -26,4 +26,6 @@ before_install:
 before_script:
   - sudo chmod 0644 $MARGINALIA_LOG_FILE
 
-script: bundle exec rake db:reset test:postgresql
+script: 
+  - bundle exec rake db:reset test:postgresql
+  - cat $MARGINALIA_LOG_FILE
